@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import TensorDataset
 from transformers import BertTokenizer
 from pre_process import conll
+# from pre_process.adj_graph import creat_sent_adj
 from utils import utils
 from utils.utils import logger
 
@@ -48,7 +49,7 @@ class InputFeature(object):
     '''
 
     def __init__(self, input_ids, input_mask, segment_ids, boundary_ids, pos_ids, input_len, rel_ids,
-                 know_ids=None):
+                 know_ids=None, know_adj_mar=None):
         self.input_ids = input_ids
         self.input_mask = input_mask
         self.segment_ids = segment_ids
@@ -57,6 +58,7 @@ class InputFeature(object):
         self.input_len = input_len
         self.rel_ids = rel_ids
         self.know_ids = know_ids
+        self.know_adj_mar = know_adj_mar
 
 class ConllProcessor(object):
     """Base class for data converters for sequence classification data sets."""
@@ -81,7 +83,6 @@ class ConllProcessor(object):
     @classmethod
     def read_data(self, data_file):
         conll_file = conll.CoNLLFile(data_file)
-        # data = conll_file.get(['word', 'upos', 'feats', 'deps'], as_sentences=True)  # 没有头节点原因 5:rAgt|12:rAgt
         data = conll_file.get(['word', 'upos', 'deps', 'misc'], as_sentences=True)  # 没有头节点原因 5:rAgt|12:rAgt
         return conll_file, data
 
@@ -113,7 +114,7 @@ class ConllProcessor(object):
             boundary = [0]  # 单词边界，词尾索引 [cls],root
 
             if len(line[0]) == 4 and line[0][-2] != '_':
-                knowledge.append('[unused1]')
+                knowledge.append('<ROOT>')
             for word in line:
                 head_rel = []
                 text_a.append(word[0])  # [ ['外公', 'NN', '7:Agt'], ['走', 'VV', '2:dCont'], ['吗', 'SP', '7:mTone'] ]
@@ -196,7 +197,7 @@ class ConllProcessor(object):
             #         print(tokens)
             #         print(boundary_ids)
             #         break
-            padding = [0] * (max_seq_len - len(boundary_ids))  # 0 的话会与CLS 位置搞混
+            padding = [0] * (max_seq_len - len(boundary_ids))  # 0 的话会与CLS 位置搞混，不会
             boundary_ids += padding
 
             arcs = example.arcs
@@ -209,6 +210,7 @@ class ConllProcessor(object):
                 know_ids = self.vocabs['know'].map(knowes)
                 know_ids += padding
                 assert len(know_ids) == len(pos_ids)
+                # know_adj_mar= creat_sent_adj(max_seq_len, none_label=self.vocabs['rel'].unit2id('_'), knowledge_feature=know_ids)
 
             if ex_id < 2:
                 logger.info("*** Example ***")
@@ -230,7 +232,8 @@ class ConllProcessor(object):
                                    pos_ids=pos_ids,
                                    rel_ids=arcs_ids,
                                    input_len=input_len,
-                                   know_ids=know_ids
+                                   know_ids=know_ids,
+
                                    # knowledge_segment_ids=knowledge_segment_ids,
                                    # knowledge_input_ids=knowledge_input_ids,
                                    # knowledge_input_mask=knowledge_input_mask,
@@ -238,8 +241,8 @@ class ConllProcessor(object):
                                    )
 
             features.append(feature)
-        logger.info("Saving features into cached file %s", cached_features_file)
         torch.save(features, cached_features_file)
+        logger.info("Saved features into cached file %s", cached_features_file)
         return features
 
     def create_dataset(self, features, is_sorted=False):
@@ -257,8 +260,10 @@ class ConllProcessor(object):
         # all_rel_ids=torch.cat()
         if features[0].know_ids :
             all_know_ids = torch.tensor([f.know_ids for f in features], dtype=torch.long)
+            # all_know_adj=torch.tensor([f.know_adj_mar for f in features], dtype=torch.long)
         else:
             all_know_ids = torch.tensor([0 for f in features], dtype=torch.long)
+            # all_know_adj = torch.tensor([0 for f in features], dtype=torch.long)
 
 
 

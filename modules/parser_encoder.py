@@ -24,7 +24,7 @@ class Parser_encoder(nn.Module):
 
         bert_output = bert_outputs[0]  # torch.Size([4, 256, 768]
 
-        # 最后四层加和
+        # 后n层加和
         # all_layers_hidden_states = bert_outputs[2]
         # last_four_hidden_states = torch.stack(all_layers_hidden_states[-4:])
         # bert_output = torch.sum(last_four_hidden_states, 0)
@@ -54,8 +54,8 @@ class Parser_encoder(nn.Module):
         boundary_ids = boundary_ids[:, :max_len_of_batch]
         tail_mask = torch.eq(boundary_ids, 0)
         bert_tail = bert_tail.masked_fill(tail_mask.unsqueeze(2), 0)
-        return bert_tail, max_len_of_batch
 
+        return bert_tail, max_len_of_batch
         # logger.debug('clip_bert_tail shape:%s', bert_tail.shape)
         # logger.debug('clip_bert_tail shape:%s', bert_tail)
         # know_segment_ids, know_input_ids, know_input_mask = knowledge_feature

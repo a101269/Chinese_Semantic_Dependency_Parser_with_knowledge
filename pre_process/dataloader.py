@@ -19,20 +19,20 @@ class Dataloader(object):
         if cached_examples_file.exists():
             conllu_file,_ = self.processor.read_data(file_path)
             examples = torch.load(cached_examples_file)
-            logger.info('Load example from cached file.')
+            logger.info('Loaded example from cached file.')
         else:
             conllu_file, conllu_data = self.processor.read_data(file_path)
             examples = self.processor.create_examples(conllu_data,mode,cached_examples_file)
-            logger.info('Load example from raw file.')
+            logger.info('Loaded example from raw file.')
 
         cashed_name = "cached_feature_" + file_name.strip('sdp_')
         cached_feature_file = abs_path / self.args.cached_path /cashed_name
         if cached_feature_file.exists():
             features = torch.load(cached_feature_file)
-            logger.info('Load feature from cached file.')
+            logger.info('Loaded feature from cached file.')
         else:
             features = self.processor.create_features(examples,cached_feature_file,max_seq_len)
-            logger.info('Load feature from raw file.')
+            logger.info('Loaded feature from raw file.')
 
         dataset=self.processor.create_dataset(features, is_sorted=False)
 
@@ -40,6 +40,6 @@ class Dataloader(object):
             sampler = SequentialSampler(dataset)
         else:
             sampler = RandomSampler(dataset)
-        data_loader = DataLoader(dataset, sampler=sampler, batch_size=batch_size)
+        data_loader = DataLoader(dataset, sampler=sampler, batch_size=batch_size,num_workers=2)
         logger.info('Dataset loaded.')
         return data_loader, conllu_file

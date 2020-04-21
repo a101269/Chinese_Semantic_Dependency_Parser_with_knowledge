@@ -8,6 +8,7 @@ from model.optimizer import get_optimizer
 from torch.nn.utils import clip_grad_norm_
 from modules.sdp_decoder import sdp_decoder, parse_semgraph
 import model.cal_las_uas as sdp_scorer
+from tensorboardX import SummaryWriter
 
 
 def unpack_batch(batch, use_cuda=False):
@@ -19,12 +20,13 @@ def unpack_batch(batch, use_cuda=False):
     pos_ids = batch[4]
     rel_ids = batch[5]
     knowledge_feature = batch[6]
+    # knowledge_adjoin_matrix = batch[7]
     # know_segment_ids = batch[6]
     # know_input_ids = batch[7]
     # know_input_mask = batch[8]
     # knowledge_feature = (batch[6], batch[7], batch[8])
 
-    return input_ids, input_mask, segment_ids, boundary_ids, pos_ids, rel_ids, knowledge_feature
+    return input_ids, input_mask, segment_ids, boundary_ids, pos_ids, rel_ids, knowledge_feature#,knowledge_adjoin_matrix
 
 
 class Trainer(object):
@@ -48,22 +50,24 @@ class Trainer(object):
             self.model, self.optimizer = amp.initialize(model, self.optimizer, opt_level=args.fp16_opt_level)
 
     def train(self, train_dataloader, dev_dataloader=None, dev_conllu_file=None):
+        summary_writer = SummaryWriter('board_log')
         seed_everything(self.args.seed)
         best_las = 0
         best_uas = 0
         self.args.eval_interval = int(self.batch_num / 2)
         logger.info(f"eval_interval:{self.args.eval_interval}")
         for epoch in range(self.args.epochs):
-            if epoch > 10:
+            if best_las >82.8:
                 self.args.eval_interval = 300
                 # logger.info(f"eval_interval:{self.args.eval_interval}")
             for step, batch in enumerate(train_dataloader):
                 self.model.train()
                 self.global_step += 1
                 batch = tuple(t.to(self.device) for t in batch)
-                input_ids, input_mask, segment_ids, boundary_ids, pos_ids, rel_ids, knowledge_feature = unpack_batch(
-                    batch, self.use_cuda)
-
+                input_ids, input_mask, segment_ids, boundary_ids, pos_ids, rel_ids, knowledge_feature= unpack_batch(batch, self.use_cuda)
+                if self.global_step==0:
+                    dummy_input=(input_ids, segment_ids,input_mask,pos_ids,boundary_ids,knowledge_feature)
+                    summary_writer.add_graph(self.model, (dummy_input,))
                 head_scores, label_scores, max_len_of_batch = self.model(input_ids, token_type_ids=segment_ids,
                                                                          attention_mask=input_mask, pos_ids=pos_ids,
                                                                          boundary_ids=boundary_ids,
@@ -77,6 +81,7 @@ class Trainer(object):
                 loss = criterion(head_scores, label_scores, head_target, label_target, word_mask, max_len_of_batch,
                                  self.model.vocabs)
                 # logger.info('loss   %s', loss)
+                summary_writer.add_scalar('loss',loss, self.global_step)
                 if self.fp16:
                     with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                         scaled_loss.backward()
@@ -89,7 +94,7 @@ class Trainer(object):
                 self.lr_scheduler.step()
                 self.optimizer.zero_grad()
 
-                if self.global_step % self.args.eval_interval == 0:
+                if self.global_step % self.args.eval_interval == 0 or self.global_step==self.batch_num*self.args.epochs:
                     LAS, UAS = self.predict(dev_dataloader, dev_conllu_file)
                     if LAS > best_las:
                         best_las = LAS
@@ -99,6 +104,13 @@ class Trainer(object):
                             f"epoch{epoch+1}, step:{self.global_step}-----LAS:{best_las:.4f},UAS:{UAS:.4f},loss {loss.item():.4f}")
                     else:
                         logger.info(f"LAS ,UAS in epoch{epoch+1},step{step+1}:{LAS:.4f},{UAS:.4f}")
+
+                    summary_writer.add_scalar('LAS', LAS, self.global_step)
+                    summary_writer.add_scalar('UAS', UAS, self.global_step)
+                    for i, param_group in enumerate(self.optimizer.param_groups):
+                        summary_writer.add_scalar(f'lr/group_{i}', param_group['lr'], self.global_step)
+
+        summary_writer.close()
         logger.warning(f"Result in Dev set:  LAS:{best_las:.4f},UAS:{best_uas:.4f}")
 
     def predict(self, dev_dataloader, dev_conllu_file):
@@ -109,15 +121,13 @@ class Trainer(object):
             with torch.no_grad():
                 preds_batch = []
                 batch = tuple(t.to(self.device) for t in batch)
-                input_ids, input_mask, segment_ids, boundary_ids, pos_ids, rel_ids, knowledge_feature = unpack_batch(
-                    batch,
-                    self.use_cuda)
+                input_ids, input_mask, segment_ids, boundary_ids, pos_ids, rel_ids, knowledge_feature= unpack_batch(
+                    batch,self.use_cuda)
 
                 head_scores, label_scores, max_len_of_batch = self.model(input_ids, token_type_ids=segment_ids,
                                                                          attention_mask=input_mask, pos_ids=pos_ids,
                                                                          boundary_ids=boundary_ids,
                                                                          knowledge_feature=knowledge_feature)
-
                 batch_size = head_scores.size(0)
                 tails = boundary_ids[:, :max_len_of_batch]
 

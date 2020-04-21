@@ -6,8 +6,10 @@ from transformers import AdamW, get_linear_schedule_with_warmup
 # from transformers import WarmupLinearSchedule
 def get_optimizer(args, batch_num, model):
     t_total = batch_num * args.epochs
-    param_optimizer = list(model.named_parameters())
     no_decay = ['bias', 'LayerNorm.weight']
+
+    param_optimizer = list(model.named_parameters())
+
     optimizer_grouped_parameters = [
         {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
          'weight_decay': args.weight_decay},

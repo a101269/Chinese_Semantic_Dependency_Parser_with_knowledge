@@ -59,6 +59,10 @@ class CoNLLFile():
                 array = line.split('\t')
                 if self.ignore_gapping and '.' in array[0]:  # 第一列为序号，为什么有 . ？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？
                     continue
+                if len(array) !=10:
+                    print('====================')
+                    print(len(array))
+                    print(array)
                 assert len(array) == FIELD_NUM  # 列数超过10，与标准不同
                 cache += [array]  # cache 为词信息列表的列表
         if len(cache) > 0:  # 最后一句

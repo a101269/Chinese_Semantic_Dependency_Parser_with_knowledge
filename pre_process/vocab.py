@@ -16,14 +16,15 @@ def load_vocab(args):
     know_vocab=None
     rel_vocab=None
     dataset=args.dataset_path
-    relation_vocab_path = pathlib.Path(args.relation_vocab_path)
+    knowledge_vocab_path = pathlib.Path(args.knowledge_vocab_path)
+    relation_vocab_path = pathlib.Path(args.relation_vocab_path) #knowledge_vocab_path
     for idx in args.columns:
         if idx ==3:
             pos_vocab=PosVocab(dataset,idx=3)
         if idx==8:
             rel_vocab=RelVocab(dataset,idx=8,vocab_path=relation_vocab_path)
         if idx==9:
-            know_vocab=PosVocab(dataset,idx=9)
+            know_vocab= KnowVocab(dataset,idx=9,vocab_path=knowledge_vocab_path)
 
     vocabs={'pos':pos_vocab,'know':know_vocab,'rel':rel_vocab}
     return vocabs
@@ -63,8 +64,8 @@ class BaseVocab:
 
 
 class PosVocab(BaseVocab):
-    def __init__(self, data=None,idx=3, cutoff=0):
-        super().__init__(data, idx=idx,cutoff=cutoff, )
+    def __init__(self, data=None,idx=3, cutoff=0,vocab_path=None):
+        super().__init__(data, idx=idx,cutoff=cutoff,vocab_path=vocab_path)
 
     def id2unit(self, id):
         return super().id2unit(id)
@@ -87,7 +88,26 @@ class PosVocab(BaseVocab):
         self._id2unit = VOCAB_PREFIX + list(sorted(list(counter.keys()), key=lambda k: counter[k], reverse=True))
         self._unit2id = {w: i for i, w in enumerate(self._id2unit)}
 
+class KnowVocab(BaseVocab):
+    def __init__(self, data=None,idx=3, cutoff=0,vocab_path=None):
+        super().__init__(data, idx=idx,cutoff=cutoff,vocab_path=vocab_path)
 
+    def id2unit(self, id):
+        return super().id2unit(id)
+
+    def unit2id(self, unit):
+        return super().unit2id(unit)
+
+    def build_vocab(self, dataset_path):
+        if self.vocab_path.exists(): # 为了方便邻接图
+            self._id2unit=torch.load(self.vocab_path)
+        else:
+            know_label = ['<PAD>', '<UNK>', '<ROOT>', '_', '搭配', '处所', '机构', '人', '动物',  '植物','抽象',
+                          '事件', '生理','心理', '建筑', '工具', '交通工具',  '作品', '材料','药物', '食物',
+                          '时间', '现象', '属性','数目']
+            self._id2unit = VOCAB_PREFIX +  know_label
+            torch.save(self._id2unit, self.vocab_path)
+        self._unit2id = {w: i for i, w in enumerate(self._id2unit)}
 
 
 class RelVocab(BaseVocab):

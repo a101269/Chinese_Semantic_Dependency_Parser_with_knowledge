@@ -20,15 +20,29 @@ def number_sents(fr):
             great_num+=1
         if len(ori_sent)>max_len:
             max_len=len((ori_sent))
-    print(max_len)
+    # print(max_len)
     fr.close()
     return sent_num,great_num
+'''
+ news.train.conll:8301句
+ news.valid.conll:534句
+ news.test.conll:1233句
+
+ text.train.conll:10754句
+ text.valid.conll:1535句
+ text.test.conll:3073句
+
+
+ 
+'''
 
 if __name__ == '__main__':
-    files = glob('F:\parser_project\Parser_with_knowledge\dataset\*.conllu')
+    files = glob('G:\corpus\SDG\conllu_file\\new_ccl_coarse_dataset\*.conllu')
+    sum_num=0
     for file in files:
-        print(file)
         sent_num, great_num=number_sents(file)
-        print(sent_num,great_num)
+        name=file.split('\\')[-1]
+        print(name+':'+str(sent_num)+'句')
+        sum_num+=sent_num
+    print('总句数'+str(sum_num))
 
-# grep -r "Model config" /data/private/ldq/anaconda3/lib/python3.6/site-packages/transformers

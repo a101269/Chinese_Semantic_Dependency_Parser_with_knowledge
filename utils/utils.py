@@ -6,7 +6,6 @@ import numpy as np
 import re
 import logging
 import torch
-import tensorflow as tf
 from pathlib import Path
 import utils.colorer
 

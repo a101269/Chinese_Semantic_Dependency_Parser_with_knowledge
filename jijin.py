@@ -1,21 +1,10 @@
 #    Author:  a101269
 #    Date  :  2020/3/30
 
-
-import sys
-import os
-import pycurl
-from io import StringIO
-import json
-import pycurl
-from io import BytesIO
-
-
 import pycurl
 from io import BytesIO
 
 c = pycurl.Curl()
-
 
 codes=[('161022',2998.6,1.3340),('007254',1950.51,1.2817),('162412',2328.02,1.2886),('001052',3237.6,0.6177),('000051',1465.59,1.3646)]   # 501090 无
 fene=[2998.6]
@@ -28,12 +17,10 @@ for code in codes:
     c.setopt(c.WRITEDATA, buffer)
     c.perform()
 
-    # Decode the response body:
     ret = buffer.getvalue().decode('utf-8')
     ret=ret.strip('jsonpgz(')
     ret=ret.strip(');')
     ret=eval(ret)
-    # print(ret)
     print('--------------'+ret['name'])
     # print(ret['dwjz'])  # 当前净值
     # print(float(ret['gsz']))
