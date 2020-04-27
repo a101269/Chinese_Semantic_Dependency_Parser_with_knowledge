@@ -15,18 +15,22 @@ def load_vocab(args):
     pos_vocab=None
     know_vocab=None
     rel_vocab=None
+    bio_vocab=None
     dataset=args.dataset_path
     knowledge_vocab_path = pathlib.Path(args.knowledge_vocab_path)
     relation_vocab_path = pathlib.Path(args.relation_vocab_path) #knowledge_vocab_path
+    pos_vocab_path = pathlib.Path(args.pos_vocab_path)
+    bio_vocab_path= pathlib.Path(args.bio_vocab_path)
     for idx in args.columns:
         if idx ==3:
-            pos_vocab=PosVocab(dataset,idx=3)
+            pos_vocab=PosVocab(dataset,idx=3,vocab_path=pos_vocab_path)
         if idx==8:
             rel_vocab=RelVocab(dataset,idx=8,vocab_path=relation_vocab_path)
         if idx==9:
             know_vocab= KnowVocab(dataset,idx=9,vocab_path=knowledge_vocab_path)
-
-    vocabs={'pos':pos_vocab,'know':know_vocab,'rel':rel_vocab}
+        if idx ==5:
+            bio_vocab=PosVocab(dataset,idx=5,vocab_path=bio_vocab_path)
+    vocabs={'pos':pos_vocab,'know':know_vocab,'rel':rel_vocab,'bio': bio_vocab}
     return vocabs
 
 
@@ -48,6 +52,7 @@ class BaseVocab:
         if unit in self._unit2id:
             return self._unit2id[unit]
         else:
+            print(unit)
             return self._unit2id[UNK]
 
     def id2unit(self, id):
@@ -75,7 +80,7 @@ class PosVocab(BaseVocab):
 
     def build_vocab(self, dataset_path):
         pos = []
-        files = glob(dataset_path + '/*.conllu')
+        files = glob(dataset_path + '/*.conllu_bio')
         for file in files:
             fr = open(file, 'r', encoding='utf')
             for line in fr.readlines():
@@ -86,6 +91,30 @@ class PosVocab(BaseVocab):
                 pos.append(line[self.idx])
         counter = Counter(pos)
         self._id2unit = VOCAB_PREFIX + list(sorted(list(counter.keys()), key=lambda k: counter[k], reverse=True))
+        if self.idx ==5:
+            bios=['<PAD>', 'O',
+'B-处所',  'I-处所',
+'B-工具',  'I-工具',
+'B-抽象','I-抽象',
+ 'B-植物', 'I-植物',
+ 'B-数目','I-数目',
+  'B-时间', 'I-时间',
+  'B-建筑', 'I-建筑',
+'B-事件','I-事件',
+'B-作品', 'I-作品',
+'B-动物', 'I-动物',
+'B-药物','I-药物',
+'B-心理','I-心理',
+'B-材料', 'I-材料',
+'B-生理', 'I-生理',
+'B-食物', 'I-食物',
+'B-现象', 'I-现象',
+'B-属性',  'I-属性',
+'B-机构','I-机构',
+'B-人', 'I-人',
+'B-交通工具', 'I-交通工具',
+'<start>', '<eos>']
+            self._id2unit = bios
         self._unit2id = {w: i for i, w in enumerate(self._id2unit)}
 
 class KnowVocab(BaseVocab):

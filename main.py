@@ -6,11 +6,11 @@ import torch
 from argparse import ArgumentParser
 from config.config import configs
 from pre_process.vocab import load_vocab
-from pre_process.conll_processor import ConllProcessor
+from pre_process.conll_processor_bio import ConllProcessor
 from pre_process.dataloader import Dataloader
 from utils.utils import init_logger,logger,device,seed_everything
 from model.trainer import Trainer
-from model.parser_model import Parser_model
+from model.parser_model_with_ner import Parser_model
 
 
 def main():

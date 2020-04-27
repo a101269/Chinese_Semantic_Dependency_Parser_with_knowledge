@@ -4,10 +4,10 @@
 configs={
   'use_cuda':True,
   'seed': 123,
-  'epochs': 100,
+  'epochs': 80,
   'eval_interval':500,
   'batch_size': 14,
-  'columns':[0,1,3,8,9],   # 5，9misc杂项可放知识库信息
+  'columns':[0,1,3,5,8,9],   # 5，9misc杂项可放知识库信息
   # {'id': 0, 'word': 1, 'lemma': 2, 'upos': 3, 'xpos': 4, 'feats': 5, 'head': 6, 'deprel': 7, 'deps': 8,'misc': 9}
 
   'learning_rate': 3e-5,
@@ -22,14 +22,14 @@ configs={
   'max_seq_len': 250,  # 最长句子不会超过他，目前不用关注
   'bert_dim': 768,
   'do_lower_case': True,
-  'bert_dropout': 0.1,
+  'bert_dropout': 0.3,
   'pretrain_model_path': '../bert_chn',
 
   'biaffine_hidden_dim': 600,
   'biaffine_dropout': 0.33,
 
   'use_pos':True,
-  'use_knowledge':False,
+  'use_knowledge':True,
 
   'bert_trans_dim':512,
   'pos_dim':256,
@@ -50,10 +50,17 @@ configs={
 
   'dataset_path': 'dataset/',
   'relation_vocab_path': 'dataset/vocabs/rel_fine.vocab',
-  'train_file': 'dataset/sdp_mix_train.conllu_ner',
-  'dev_file': 'dataset/sdp_text_dev.conllu_ner',
-  'test_file1': 'dataset/sdp_text_test.conllu_ner',
-  'test_file2': 'dataset/sdp_news_test.conllu_ner',
+  'train_file': 'dataset/sdp_mix_train.conllu_bio',
+  'dev_file': 'dataset/sdp_text_dev.conllu_bio',
+  'test_file1': 'dataset/sdp_text_test.conllu_bio',
+  'test_file2': 'dataset/sdp_news_test.conllu_bio',
+
+  # 'dataset_path': 'dataset/',
+  # 'relation_vocab_path': 'dataset/vocabs/rel_fine.vocab',
+  # 'train_file': 'dataset/sdp_mix_train.conllu_ner',
+  # 'dev_file': 'dataset/sdp_text_dev.conllu_ner',
+  # 'test_file1': 'dataset/sdp_text_test.conllu_ner',
+  # 'test_file2': 'dataset/sdp_news_test.conllu_ner',
 
   # 'dataset_path': 'dataset/coarse',
   # 'relation_vocab_path':'dataset/vocabs/rel_coarse.vocab',
@@ -64,7 +71,8 @@ configs={
 
   'eval_temp_file':'dataset/eval_temp.conllu',
   'debug_file': 'dataset/test.conllu_ner',
-
+  'pos_vocab_path': 'dataset/vocabs/pos.vocab',
+  'bio_vocab_path': 'dataset/vocabs/bio.vocab',
   'knowledge_vocab_path': 'dataset/vocabs/knowledge.vocab',
   'logger_name': 'mylog',
   'output_path': 'output',

@@ -55,7 +55,7 @@ class Parser_encoder(nn.Module):
         tail_mask = torch.eq(boundary_ids, 0)
         bert_tail = bert_tail.masked_fill(tail_mask.unsqueeze(2), 0)
 
-        return bert_tail, max_len_of_batch
+        return bert_tail, max_len_of_batch ,bert_tail
         # logger.debug('clip_bert_tail shape:%s', bert_tail.shape)
         # logger.debug('clip_bert_tail shape:%s', bert_tail)
         # know_segment_ids, know_input_ids, know_input_mask = knowledge_feature

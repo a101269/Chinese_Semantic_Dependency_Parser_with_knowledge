@@ -57,7 +57,7 @@ class Trainer(object):
         self.args.eval_interval = int(self.batch_num / 2)
         logger.info(f"eval_interval:{self.args.eval_interval}")
         for epoch in range(self.args.epochs):
-            if best_las >82.8:
+            if best_las > 0.829:
                 self.args.eval_interval = 300
                 # logger.info(f"eval_interval:{self.args.eval_interval}")
             for step, batch in enumerate(train_dataloader):
