@@ -28,6 +28,13 @@ class Parser_model(nn.Module):
             biaff_input_size = 0
             self.trans_bert_dim_layer = nn.Linear(args.bert_dim, args.bert_trans_dim)
             biaff_input_size += args.bert_trans_dim
+            if args.use_knowledge:
+                self.seg_emb_dim=4
+            else:
+                self.seg_emb_dim = 8
+            self.seg_emb= torch.cuda.FloatTensor(self.seg_emb_dim) if torch.cuda.is_available() else torch.FloatTensor(self.seg_emb_dim)
+            self.seg_emb*=0
+            biaff_input_size += self.seg_emb_dim
         if args.use_knowledge:
             self.know_emb = nn.Embedding(len(vocabs['know']), args.knowledge_dim, padding_idx=0)
 
@@ -45,6 +52,7 @@ class Parser_model(nn.Module):
                 # self.graph_attention_networks=GAT(nfeat=self.args.knowledge_dim+args.bert_trans_dim, nhid=args.gat_hidden, out_dim=1, dropout=args.gat_dropout,
                 #                                     nheads=args.gat_heads, alpha=args.gat_alpha, layer=1)
             biaff_input_size += self.args.knowledge_dim
+            biaff_input_size +=self.seg_emb_dim
 
 
         if args.use_pos:
@@ -89,6 +97,8 @@ class Parser_model(nn.Module):
 
         if self.args.use_pos:
             pos_emb = self.pos_emb(pos_ids[:, :max_len_of_batch])
+            seg_emb = self.seg_emb.unsqueeze(0).unsqueeze(0).expand(embeddings.size(0),max_len_of_batch,  self.seg_emb_dim)
+            embeddings = torch.cat((embeddings, seg_emb ), 2)
             embeddings = torch.cat((embeddings, pos_emb), 2)
 
         # cat  SEP  SEP 必要
@@ -102,6 +112,8 @@ class Parser_model(nn.Module):
                 # knowledge_adjoin_matrix=knowledge_adjoin_matrix[:,:max_len_of_batch, :max_len_of_batch]
             else:  # 拼接
                 know_emb = self.know_emb(knowledge_feature)
+            seg_emb = self.seg_emb.unsqueeze(0).unsqueeze(0).expand(embeddings.size(0),max_len_of_batch,  self.seg_emb_dim)
+            embeddings = torch.cat((embeddings, seg_emb ), 2)
             embeddings = torch.cat((embeddings, know_emb), 2)
 
         # embeddings=self.dropout(embeddings)

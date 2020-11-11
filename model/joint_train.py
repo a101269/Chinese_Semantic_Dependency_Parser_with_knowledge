@@ -83,19 +83,24 @@ class Trainer(object):
                 loss = criterion(head_scores, label_scores, head_target, label_target, word_mask, max_len_of_batch,
                                  self.model.vocabs)
                 # if self.global_step%3!=0:
-                pad_zero = torch.cuda.LongTensor(bio_ids.size()[0],max_len_of_batch) if torch.cuda.is_available() else torch.LongTensor(bio_ids.size()[0], max_len_of_batch)
+                pad_zero = torch.cuda.LongTensor(bio_ids.size()[0],
+                                                 max_len_of_batch) if torch.cuda.is_available() else torch.LongTensor(
+                    bio_ids.size()[0], max_len_of_batch)
                 pad_zero *= 0
-                bio_ids= bio_ids[:, :max_len_of_batch]
+                bio_ids = bio_ids[:, :max_len_of_batch]
                 bio_ids = torch.where(bio_ids >= 5, bio_ids, pad_zero)
-                ner_loss = self.model.crf.neg_log_likelihood_loss(ner_scores, input_mask[:, :max_len_of_batch], bio_ids)
+                del pad_zero
+                ner_loss = self.model.crf.neg_log_likelihood_loss(ner_scores, input_mask[:, :max_len_of_batch],bio_ids)
                 ner_loss /= float(self.args.batch_size)
                 summary_writer.add_scalar('ner_loss', ner_loss, self.global_step)
-                if ner_loss>0.6:
-                    ner_loss.backward(retain_graph=True)
+                if ner_loss>0.5:
+
+                    self.optimizer2.zero_grad()
+                    ner_loss.backward()
                     self.optimizer2.step()
                     self.lr_scheduler2.step()
-                    self.optimizer2.zero_grad()
-                # logger.info('loss   %s', loss)
+                ner_scores.detach()
+                    # logger.info('loss   %s', loss)
                 summary_writer.add_scalar('parser_loss',loss, self.global_step)
 
                 if self.fp16:

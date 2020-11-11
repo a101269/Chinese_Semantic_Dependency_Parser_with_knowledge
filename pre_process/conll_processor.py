@@ -83,7 +83,7 @@ class ConllProcessor(object):
     @classmethod
     def read_data(self, data_file):
         conll_file = conll.CoNLLFile(data_file)
-        data = conll_file.get(['word', 'upos', 'deps', 'misc'], as_sentences=True)  # 没有头节点原因 5:rAgt|12:rAgt
+        data = conll_file.get(['word', 'upos', 'deps', 'feats'], as_sentences=True)  #'misc' 'feats'# 没有头节点原因 5:rAgt|12:rAgt
         return conll_file, data
 
     def truncate_seq_pair(self, tokens_a, tokens_b, max_length):
@@ -100,7 +100,7 @@ class ConllProcessor(object):
             else:
                 tokens_b.pop()
 
-    def create_examples(self, lines, example_type, cached_examples_file):
+    def create_examples(self, lines, example_type, cached_examples_file, max_seq_len):
         '''
         Creates examples for data
         '''
@@ -136,6 +136,8 @@ class ConllProcessor(object):
             if i == len(lines) - 1:
                 print(guid, pos, knowledge, boundary, arcs)
             text_a = ''.join(text_a)
+            if len(text_a) > max_seq_len - 2:
+                continue
             example = InputExample(guid=guid, text_a=text_a, pos=pos, knowledge=knowledge, boundary=boundary, arcs=arcs)
             examples.append(example)
         torch.save(examples, cached_examples_file)

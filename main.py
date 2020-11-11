@@ -2,15 +2,16 @@
 #    Date  :  2020/3/4
 
 import os
+from glob import glob
 import torch
 from argparse import ArgumentParser
 from config.config import configs
 from pre_process.vocab import load_vocab
-from pre_process.conll_processor_bio import ConllProcessor
+from pre_process.conll_processor import ConllProcessor
 from pre_process.dataloader import Dataloader
 from utils.utils import init_logger,logger,device,seed_everything
 from model.trainer import Trainer
-from model.parser_model_with_ner import Parser_model
+from model.parser_model import Parser_model
 
 
 def main():
@@ -51,7 +52,9 @@ def main():
     def test():
         model.load_state_dict(torch.load(args.saved_model_path + '/pytorch_model.bin'))
         logger.info('Start testing-----------------')
-        for test_file in [args.test_file1, args.test_file2]:
+        test_files=[args.test_file2, args.test_file1,args.test_file3,args.test_file4]
+        # test_files = glob('dataset/*for_sdp.conllu')
+        for test_file in test_files:
             args.gold_file = test_file
             test_dataloader, test_conllu_file = dataloader.load_data(test_file, args.batch_size, args.max_seq_len,
                                                                      mode='test')
@@ -59,8 +62,9 @@ def main():
             trainer = Trainer(args, model, batch_num)
             LAS, UAS = trainer.predict(test_dataloader, test_conllu_file)
             logger.warning(f"Test result in {test_file}: LAS:{LAS:.4f}, UAS:{UAS:.4f}")
-            reference_file = args.gold_file + '.sem16.sdp'
-            os.system('python evalute.py --reference ' + reference_file)
+            if not args.do_pre:
+                reference_file = args.gold_file + '.sem16.sdp'
+                os.system('python evalute.py --reference ' + reference_file)
 
     if args.from_checkpoint:
         model.load_state_dict(torch.load(args.saved_model_path + '/pytorch_model.bin'))

@@ -37,7 +37,7 @@ def number_sents(fr):
 '''
 
 if __name__ == '__main__':
-    files = glob('G:\corpus\SDG\conllu_file\\new_ccl_coarse_dataset\*.conllu')
+    files = glob('G:\corpus\SDG\conllu_file\ccl_eval_coarse_dataset\\lala*')
     sum_num=0
     for file in files:
         sent_num, great_num=number_sents(file)

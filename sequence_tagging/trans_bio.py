@@ -4,10 +4,10 @@ from glob import glob
 
 def trans_to_bio(fr):
     inject_entity_num=0
-    name=fr.split('\\')[-1].split('.')[0]
+    name=fr.split('/')[-1].split('.')[0]
     print(name)
     fr = open(fr, 'r', encoding="utf")
-    fw = open('.\\'+name+'.conllu_bio', mode='w', encoding='utf')
+    fw = open('./'+name+'.conllu_bio', mode='w', encoding='utf')
     sents=fr.read().split('\n\n')
     sent_num=len(sents)
     for sent_id,sent in enumerate(sents):
@@ -55,11 +55,11 @@ def trans_to_bio(fr):
             fw.write(write_line+"\n")
         fw.write('\n')
     fw.close()
-    print("加入知识的词数 ："+str(inject_entity_num))
+
 
 
 if __name__ == '__main__':
-    files = glob('G:\研究生\parser文献\EMNLP2020\conllu_ner\*.conllu_ner')
+    files = glob('./*.conllu_ner')
     for file in files:
         print(file)
         trans_to_bio(file)

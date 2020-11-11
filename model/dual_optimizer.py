@@ -24,12 +24,13 @@ def get_optimizer(args, batch_num, model):
                                                    num_training_steps=t_total)
     # lr_scheduler = WarmupLinearSchedule(optimizer, warmup_steps=warmup_steps, t_total=t_total)
     param_optimizer2 = list(model.crf.named_parameters())+list(model.ner_linear.named_parameters())
+
     optimizer_grouped_parameters2 = [
         {'params': [p for n, p in param_optimizer2 if not any(nd in n for nd in no_decay)],
-         'weight_decay': args.weight_decay},
+         'weight_decay': 0.01},
         {'params': [p for n, p in param_optimizer2 if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
     ]
-    optimizer2 = AdamW(optimizer_grouped_parameters2, lr=5e-5, eps=args.adam_epsilon,
+    optimizer2 = AdamW(optimizer_grouped_parameters2, lr=3e-5, eps=args.adam_epsilon,
                       betas=(args.beta1, args.beta2))
     lr_scheduler2 = get_linear_schedule_with_warmup(optimizer2, num_warmup_steps=warmup_steps,
                                                    num_training_steps=t_total)

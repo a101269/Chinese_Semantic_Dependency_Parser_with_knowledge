@@ -190,13 +190,13 @@ if __name__ == "__main__":
         dest="reference",
         help="path to reference(gold) data",
         # required=True
-        default='./dataset/sdp_text_dev.conllu.sem16.sdp'
+        default='D:\研究生\Parser_with_knowledge\dataset\\result\sdp_text_test.conllu.sem16.sdp'
     )
     parser.add_argument(
         "--answer",
         dest="answer",
         help="path to answer(test) data",
-        default='./eval_temp.conllu.sem16.sdp'
+        default='D:\研究生\graduation\\test_file\\text_eval_temp.conllu_post.sem16'
         #required=True
         )
     parser.add_argument(

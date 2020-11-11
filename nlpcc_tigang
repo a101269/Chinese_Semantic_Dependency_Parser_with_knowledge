@@ -9,3 +9,30 @@
 related work:命名实体识别相关部分，
 模型介绍：输入，bert词向量的生成,transformer(自注意力层)、biaffine公式等），
 4.实验:数据集，知识库介绍、统计；统计数据集时加入注入知识的词数；超参，实验结果，实验分析，消融实验
+
+提交指南：https://docs.qq.com/doc/DQmFoY05XTVRzcnNs
+公开worksheet：https://worksheets.codalab.org/worksheets/0x26ba10fd92324b07866dad71a356bacb
+提交申请表单：https://docs.qq.com/form/edit/DQnNWeWtlaGtkdURY?_w_tencentdocx_form=1#/edit
+后续：15日更新主页，并将提交指南作为新的页面在实验室官网上更新，邮件通知已参赛者
+
+add bundle 0xab65c2b64d2347fbaab883253f0592ac
+python3 conllu_to_sem16.py --input eval
+
+cl make run-python3/eval_temp.conllu.sem16 -n eval_temp.conllu.sem16
+
+
+text:
+    LP        LR        LF       NLF        UP        UR        UF       NUF        LM        UM
+  86.03%    84.43%    85.22%    65.95%    92.45%    90.73%    91.58%    71.67%    34.14%    56.72%
+
+
+news:
+    LP        LR        LF       NLF        UP        UR        UF       NUF        LM        UM
+  74.60%    73.91%    74.25%    59.67%    85.02%    84.23%    84.63%    69.90%    17.92%    29.85%
+yqy:
+    LP        LR        LF       NLF        UP        UR        UF       NUF        LM        UM
+  77.14%    76.95%    77.04%    58.35%    86.20%    85.99%    86.10%    75.24%    11.60%    32.93%
+
+drama"
+    LP        LR        LF       NLF        UP        UR        UF       NUF        LM        UM
+  77.11%    76.87%    76.99%    66.32%    85.26%    84.99%    85.12%    81.05%    21.87%    42.67%

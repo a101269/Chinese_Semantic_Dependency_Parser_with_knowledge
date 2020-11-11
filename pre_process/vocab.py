@@ -27,7 +27,9 @@ def load_vocab(args):
         if idx==8:
             rel_vocab=RelVocab(dataset,idx=8,vocab_path=relation_vocab_path)
         if idx==9:
-            know_vocab= KnowVocab(dataset,idx=9,vocab_path=knowledge_vocab_path)
+            pos_set=pos_vocab._id2unit[3:]
+            print(pos_set)
+            know_vocab= KnowVocab(dataset,idx=9,vocab_path=knowledge_vocab_path,pos_vocab=pos_set)
         if idx ==5:
             bio_vocab=PosVocab(dataset,idx=5,vocab_path=bio_vocab_path)
     vocabs={'pos':pos_vocab,'know':know_vocab,'rel':rel_vocab,'bio': bio_vocab}
@@ -38,11 +40,13 @@ class BaseVocab:
     """ A base class for common vocabulary operations. Each subclass should at least
     implement its own build_vocab() function."""
 
-    def __init__(self, dataset_path=None,idx=0, cutoff=0,vocab_path=None):
+    def __init__(self, dataset_path=None,idx=0, cutoff=0,vocab_path=None,pos_vocab=None):
         self.idx=idx
         self.cutoff = cutoff
         self.vocab_path = vocab_path
+        self.pos_vocab=pos_vocab
         self.build_vocab(dataset_path)
+
 
 
     def build_vocab(self, dataset_path):
@@ -52,7 +56,7 @@ class BaseVocab:
         if unit in self._unit2id:
             return self._unit2id[unit]
         else:
-            print(unit)
+            # print(unit)
             return self._unit2id[UNK]
 
     def id2unit(self, id):
@@ -108,18 +112,22 @@ class PosVocab(BaseVocab):
 'B-材料', 'I-材料',
 'B-生理', 'I-生理',
 'B-食物', 'I-食物',
-'B-现象', 'I-现象',
 'B-属性',  'I-属性',
 'B-机构','I-机构',
 'B-人', 'I-人',
 'B-交通工具', 'I-交通工具',
+'B-搭配','I-搭配',
+'B-货币','I-货币',
+'B-生理','I-生理',
+'B-信息','I-信息',
+'B-衣物','I-衣物',
 '<start>', '<eos>']
             self._id2unit = bios
         self._unit2id = {w: i for i, w in enumerate(self._id2unit)}
 
 class KnowVocab(BaseVocab):
-    def __init__(self, data=None,idx=3, cutoff=0,vocab_path=None):
-        super().__init__(data, idx=idx,cutoff=cutoff,vocab_path=vocab_path)
+    def __init__(self, data=None,idx=3, cutoff=0,vocab_path=None, pos_vocab=None):
+        super().__init__(data, idx=idx,cutoff=cutoff,vocab_path=vocab_path,pos_vocab=pos_vocab)
 
     def id2unit(self, id):
         return super().id2unit(id)
@@ -131,10 +139,29 @@ class KnowVocab(BaseVocab):
         if self.vocab_path.exists(): # 为了方便邻接图
             self._id2unit=torch.load(self.vocab_path)
         else:
-            know_label = ['<PAD>', '<UNK>', '<ROOT>', '_', '搭配', '处所', '机构', '人', '动物',  '植物','抽象',
-                          '事件', '生理','心理', '建筑', '工具', '交通工具',  '作品', '材料','药物', '食物',
-                          '时间', '现象', '属性','数目']
-            self._id2unit = VOCAB_PREFIX +  know_label
+            # know_label = ['<PAD>', '<UNK>', '<ROOT>', '_', '搭配', '植物', '抽象', '事件', '心理', '处所', '作品',
+            #               '生理', '工具', '药物', '货币', '交通工具', '建筑', '机构', '衣服', '数目', '动物',
+            #               '材料', '时间', '信息', '食物', '人', '衣物', '属性']
+            know_label=['<PAD>', '<ROOT>','<UNK>', 'O',
+'B-处所',  'I-处所',
+'B-工具',  'I-工具',
+'B-抽象','I-抽象',
+'B-植物', 'I-植物',
+'B-建筑', 'I-建筑',
+'B-作品', 'I-作品',
+'B-动物', 'I-动物',
+'B-药物','I-药物',
+'B-心理','I-心理',
+'B-材料', 'I-材料',
+'B-生理', 'I-生理',
+'B-食物', 'I-食物',
+'B-属性',  'I-属性',
+'B-机构','I-机构',
+'B-人', 'I-人',
+'B-交通工具', 'I-交通工具',
+'B-生理','I-生理',
+'B-衣物','I-衣物']
+            self._id2unit = know_label
             torch.save(self._id2unit, self.vocab_path)
         self._unit2id = {w: i for i, w in enumerate(self._id2unit)}
 

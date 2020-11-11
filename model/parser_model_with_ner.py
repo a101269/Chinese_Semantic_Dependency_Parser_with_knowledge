@@ -61,7 +61,7 @@ class Parser_model(nn.Module):
                                                     knowledge_feature=knowledge_feature)
         embeddings=self.dropout(embeddings)
         # 序列标注
-        ner_scores = self.ner_linear(embeddings)
+        ner_scores = self.ner_linear(embeddings.detach())
         tail_mask = torch.eq(tail_mask, False)
 
         _, tag_seq = self.crf._viterbi_decode(ner_scores, tail_mask)

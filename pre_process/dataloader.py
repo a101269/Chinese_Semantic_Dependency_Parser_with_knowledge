@@ -22,7 +22,7 @@ class Dataloader(object):
             logger.info('Loaded example from cached file.')
         else:
             conllu_file, conllu_data = self.processor.read_data(file_path)
-            examples = self.processor.create_examples(conllu_data,mode,cached_examples_file)
+            examples = self.processor.create_examples(conllu_data,mode,cached_examples_file,max_seq_len)
             logger.info('Loaded example from raw file.')
 
         cashed_name = "cached_feature_" + file_name.strip('sdp_')
